@@ -64,14 +64,23 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-5">
           {[
             { name: 'Starter', price: '₹2,499', for: 'Single-location clinics', f: ['WhatsApp inbox + AI replies', 'Booking + reminders', '500 messages included', 'Email support'] },
-            { name: 'Growth', price: '₹6,499', for: 'Busy clinics, 2–5 staff', f: ['Everything in Starter', 'Patient CRM + invoices', '2,000 messages included', 'Review automation', 'Priority support'] },
+            { name: 'Growth', price: '₹6,499', for: 'Busy clinics, 2–5 staff', popular: true, f: ['Everything in Starter', 'Patient CRM + invoices', '2,000 messages included', 'Review automation', 'Priority support'] },
             { name: 'Pro', price: '₹11,999', for: 'Multi-doctor / multi-branch', f: ['Everything in Growth', 'Unlimited staff seats', '5,000 messages included', 'Custom AI training', 'Dedicated success manager'] },
           ].map((p) => (
-            <div key={p.name} className="card">
+            <div
+              key={p.name}
+              className={`card flex flex-col h-full ${'popular' in p && p.popular ? 'ring-2 ring-brand/50 md:scale-[1.02]' : ''}`}
+            >
+              {'popular' in p && p.popular ? (
+                <div className="text-xs font-semibold text-brand uppercase tracking-wide mb-1">Most popular</div>
+              ) : null}
               <div className="text-sm text-white/60">{p.name}</div>
               <div className="text-3xl font-bold mt-2">{p.price}<span className="text-base text-white/50">/mo</span></div>
               <div className="text-sm text-white/60 mt-1">{p.for}</div>
-              <ul className="mt-4 space-y-2 text-sm">{p.f.map((x) => <li key={x}>✓ {x}</li>)}</ul>
+              <ul className="mt-4 space-y-2 text-sm flex-1">{p.f.map((x) => <li key={x}>✓ {x}</li>)}</ul>
+              <a href={`/?plan=${encodeURIComponent(p.name)}#contact`} className="btn btn-primary w-full mt-6">
+                Apply
+              </a>
             </div>
           ))}
         </div>

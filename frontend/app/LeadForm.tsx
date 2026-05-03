@@ -1,11 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '../lib/api';
 
-export default function LeadForm() {
+function LeadFormFields() {
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ name: '', phone: '', message: '', consent: false });
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
+
+  useEffect(() => {
+    const plan = searchParams.get('plan');
+    if (!plan) return;
+    setForm((prev) => {
+      if (prev.message.trim()) return prev;
+      return { ...prev, message: `I'm interested in the ${plan} plan.` };
+    });
+  }, [searchParams]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,5 +40,13 @@ export default function LeadForm() {
       {err && <div className="text-red-400 text-sm">{err}</div>}
       <button className="btn btn-primary w-full">Request pilot</button>
     </form>
+  );
+}
+
+export default function LeadForm() {
+  return (
+    <Suspense fallback={<div className="card min-h-[240px] flex items-center justify-center text-white/40">Loading form…</div>}>
+      <LeadFormFields />
+    </Suspense>
   );
 }
