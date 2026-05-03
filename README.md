@@ -33,6 +33,22 @@ Uses Google Identity Services (your Gmail / Google Workspace account — no pass
 3. Under **Authorized JavaScript origins**, add `http://localhost:3000` and your production site URL.
 4. Copy the **Client ID** into **`backend/.env`** → `GOOGLE_CLIENT_ID`. The frontend picks up the same value automatically via `frontend/next.config.js` (you can override with `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in `frontend/.env.local` if needed).
 5. Restart backend and frontend. New Google users get a dashboard account automatically (`staff` role); seeded admin stays `admin`.
+6. For **production**, add your deployed site URL under **Authorized JavaScript origins** (see [Deploy on Vercel](#deploy-on-vercel) below).
+
+### Deploy on Vercel (frontend)
+
+This repo’s **Next.js app** lives in **`frontend/`**. The **Express API** (`backend/`) is **not** run by Vercel — host it separately (Railway, Render, Fly.io, VPS, etc.) and point the frontend at it.
+
+1. **Import the repo** in [Vercel](https://vercel.com/) → **Add New…** → **Project** → select **clinicflow-ai** from GitHub.
+2. Set **Root Directory** to **`frontend`** (important — monorepo).
+3. Under **Environment Variables** (Production / Preview), set:
+   - **`NEXT_PUBLIC_API_URL`** — public URL of your API, e.g. `https://api.yourdomain.com` (no trailing slash). Until the API is deployed, the live site cannot load dashboard data (defaults to `localhost` only if unset).
+   - **`NEXT_PUBLIC_GOOGLE_CLIENT_ID`** — same Web Client ID as **`GOOGLE_CLIENT_ID`** on the backend (required on Vercel builds because `backend/.env` is not in git).
+4. **Deploy**. Optional CLI from `frontend/`: `npx vercel --prod` (requires login once).
+5. **Google Cloud Console** → your OAuth Web client → **Authorized JavaScript origins**: add  
+   `https://<your-vercel-domain>` (and preview URLs if you use Google login on previews).
+
+Compliance note: default Vercel regions may be outside India — see [Vercel regions](https://vercel.com/docs/regions); align with your DPDP / data residency policy.
 
 ## Stack
 - Next.js 14, Tailwind, TypeScript

@@ -9,6 +9,7 @@ Thumbs.db
 coverage
 .turbo
 *.tsbuildinfo
+.vercel
 # Local Prisma SQLite file (regenerate with: npx prisma migrate dev)
 backend/prisma/*.db
 backend/prisma/*.db-journal
