@@ -5,8 +5,8 @@ import { hash } from './src/auth.js';
 async function main() {
   await prisma.user.upsert({
     where: { email: 'admin@clinic.local' },
-    update: {},
-    create: { email: 'admin@clinic.local', password: hash('admin123'), name: 'Clinic Admin' },
+    update: { role: 'admin', password: hash('admin123') },
+    create: { email: 'admin@clinic.local', password: hash('admin123'), name: 'Clinic Admin', role: 'admin' },
   });
   const p = await prisma.patient.upsert({
     where: { phone: '+919999000001' },
