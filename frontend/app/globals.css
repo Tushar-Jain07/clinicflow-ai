@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body { background:#0b1020; color:#eef2ff; }
+.card { @apply bg-white/5 border border-white/10 rounded-xl p-5; }
+.btn { @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold; }
+.btn-primary { @apply bg-brand text-black hover:bg-green-500; }
+.btn-ghost { @apply border border-white/15 hover:bg-white/5; }
+input, select, textarea { @apply bg-white/5 border border-white/10 rounded-lg px-3 py-2 w-full text-white; }
+table { @apply w-full text-sm; }
+th, td { @apply text-left py-2 px-3 border-b border-white/10; }

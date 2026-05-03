@@ -1,0 +1,14 @@
+node_modules
+.env
+.env.local
+.next
+dist
+*.log
+.DS_Store
+Thumbs.db
+coverage
+.turbo
+*.tsbuildinfo
+# Local Prisma SQLite file (regenerate with: npx prisma migrate dev)
+backend/prisma/*.db
+backend/prisma/*.db-journal

@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id           String    @id @default(cuid())
+  name         String?
+  phone        String
+  source       String
+  message      String?
+  status       String    @default("new")
+  consent      Boolean   @default(false)
+  aiReply      String?
+  firstReplyAt DateTime?
+  createdAt    DateTime  @default(now())
+  patient      Patient?  @relation(fields: [patientId], references: [id])
+  patientId    String?
+}
+
+model Patient {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String        @unique
+  email        String?
+  dob          DateTime?
+  gender       String?
+  notes        String?
+  abhaId       String?
+  consent      Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+  invoices     Invoice[]
+  leads        Lead[]
+}
+
+model Appointment {
+  id           String   @id @default(cuid())
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  patientId    String
+  doctor       String
+  startsAt     DateTime
+  duration     Int      @default(30)
+  status       String   @default("scheduled")
+  reminderSent Boolean  @default(false)
+  reviewSent   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+  number     String   @unique
+  items      String
+  subtotal   Float
+  tax        Float    @default(0)
+  total      Float
+  status     String   @default("unpaid")
+  paymentUrl String?
+  createdAt  DateTime @default(now())
+}
