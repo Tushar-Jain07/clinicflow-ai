@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
-    "next": "14.2.15",
+    "next": "^14.2.35",
     "qrcode.react": "^4.2.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"

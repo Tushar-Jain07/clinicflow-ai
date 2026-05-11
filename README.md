@@ -5,9 +5,9 @@ WhatsApp-first AI receptionist + clinic OS for Indian clinics.
 ## Quick start
 
 ```bash
-# Backend (Prisma uses SQLite — creates backend/prisma/dev.db)
+# Backend (PostgreSQL — use docker compose or a local instance)
 cd backend
-cp .env.example .env
+cp .env.example .env          # edit DATABASE_URL if needed
 npm install
 npx prisma migrate dev --name init
 npm run seed
@@ -20,7 +20,11 @@ npm install
 npm run dev   # http://localhost:3000
 ```
 
-Optional: start PostgreSQL with `docker compose up -d` if you switch `datasource` in `backend/prisma/schema.prisma` to PostgreSQL and point `DATABASE_URL` in `.env` at that instance.
+Or spin up the full stack with Docker:
+
+```bash
+docker compose up -d          # PostgreSQL + backend + frontend
+```
 
 Login: `admin@clinic.local` / `admin123` (email/password), or **Sign in with Google** when OAuth is configured.
 
@@ -33,26 +37,56 @@ Uses Google Identity Services (your Gmail / Google Workspace account — no pass
 3. Under **Authorized JavaScript origins**, add `http://localhost:3000` and your production site URL.
 4. Copy the **Client ID** into **`backend/.env`** → `GOOGLE_CLIENT_ID`. The frontend picks up the same value automatically via `frontend/next.config.js` (you can override with `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in `frontend/.env.local` if needed).
 5. Restart backend and frontend. New Google users get a dashboard account automatically (`staff` role); seeded admin stays `admin`.
-6. For **production**, add your deployed site URL under **Authorized JavaScript origins** (see [Deploy on Vercel](#deploy-on-vercel) below).
+6. For **production**, add your deployed site URL under **Authorized JavaScript origins** (see [Deploy on Railway](#deploy-on-railway) below).
 
-### Deploy on Vercel (frontend)
+### Deploy on Railway
 
-This repo’s **Next.js app** lives in **`frontend/`**. The **Express API** (`backend/`) is **not** run by Vercel — host it separately (Railway, Render, Fly.io, VPS, etc.) and point the frontend at it.
+This monorepo deploys as **two Railway services** (backend + frontend) plus a **Railway PostgreSQL** database.
 
-1. **Import the repo** in [Vercel](https://vercel.com/) → **Add New…** → **Project** → select **clinicflow-ai** from GitHub.
-2. Set **Root Directory** to **`frontend`** (important — monorepo).
-3. Under **Environment Variables** (Production / Preview), set:
-   - **`NEXT_PUBLIC_API_URL`** — public URL of your API, e.g. `https://api.yourdomain.com` (no trailing slash). Until the API is deployed, the live site cannot load dashboard data (defaults to `localhost` only if unset).
-   - **`NEXT_PUBLIC_GOOGLE_CLIENT_ID`** — same Web Client ID as **`GOOGLE_CLIENT_ID`** on the backend (required on Vercel builds because `backend/.env` is not in git).
-4. **Deploy**. Optional CLI from `frontend/`: `npx vercel --prod` (requires login once).
-5. **Google Cloud Console** → your OAuth Web client → **Authorized JavaScript origins**: add  
-   `https://<your-vercel-domain>` (and preview URLs if you use Google login on previews).
+#### 1. Create the project
 
-Compliance note: default Vercel regions may be outside India — see [Vercel regions](https://vercel.com/docs/regions); align with your DPDP / data residency policy.
+1. Go to [Railway](https://railway.app/) → **New Project** → **Deploy from GitHub Repo** → select **clinicflow-ai**.
+2. Railway detects the repo — do **not** let it auto-deploy yet.
+
+#### 2. Add PostgreSQL
+
+1. In your Railway project → **+ New** → **Database** → **Add PostgreSQL**.
+2. Railway creates a `DATABASE_URL` variable automatically.
+
+#### 3. Backend service
+
+1. **+ New** → **GitHub Repo** → same repo.
+2. **Settings** → **Root Directory** → `backend`.
+3. Under **Variables**, add:
+   - `DATABASE_URL` → click **Add Reference** → select the Postgres plugin's `DATABASE_URL`.
+   - `JWT_SECRET` — a long random string.
+   - `OPENAI_API_KEY` — your OpenAI key (optional).
+   - `GOOGLE_CLIENT_ID` — your OAuth Web Client ID (optional).
+   - `CLINIC_NAME`, `CLINIC_BOOKING_URL`, etc. as needed.
+4. Railway reads `backend/railway.toml` and `backend/Dockerfile` automatically.
+5. **Deploy**. The container runs `prisma migrate deploy` on start-up, then starts Express.
+
+#### 4. Frontend service
+
+1. **+ New** → **GitHub Repo** → same repo.
+2. **Settings** → **Root Directory** → `frontend`.
+3. Under **Variables**, add:
+   - `NEXT_PUBLIC_API_URL` — the backend's Railway URL, e.g. `https://backend-production-xxxx.up.railway.app` (no trailing slash). Get this from the backend service's **Settings → Networking → Public URL**.
+   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` — same Web Client ID as the backend's `GOOGLE_CLIENT_ID` (optional).
+   - `PORT` — Railway sets this automatically; Next.js standalone respects it.
+4. Railway reads `frontend/railway.toml` and `frontend/Dockerfile` automatically.
+5. **Deploy**.
+
+#### 5. Post-deploy
+
+- **Google Cloud Console** → your OAuth Web client → **Authorized JavaScript origins**: add the frontend's public Railway URL.
+- Update `CLINIC_BOOKING_URL` in the backend to point to the frontend's public URL + `/book`.
+
+> **Data residency note:** Choose Railway's **Asia (Singapore)** region to stay close to India. For strict DPDP compliance, consider self-hosting on AWS Mumbai (`ap-south-1`).
 
 ## Stack
 - Next.js 14, Tailwind, TypeScript
-- Node.js, Express, Prisma, SQLite (local dev database file)
+- Node.js, Express, Prisma, PostgreSQL
 - JWT auth (email/password + optional Google OAuth), OpenAI for AI replies, node-cron for reminders
 - WhatsApp Cloud API webhook (stubbed; plug in BSP like AiSensy/Interakt in `src/whatsapp.js`)
 

@@ -35,6 +35,7 @@ const nextPublicGoogle =
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
+  output: 'standalone',
   env: {
     ...(nextPublicGoogle ? { NEXT_PUBLIC_GOOGLE_CLIENT_ID: nextPublicGoogle } : {}),
   },
